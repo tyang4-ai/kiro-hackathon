@@ -1,0 +1,213 @@
+# ============================================
+# SERVERLESS FRAMEWORK CONFIGURATION
+# ============================================
+
+service: clinisight-backend
+
+frameworkVersion: '3'
+
+# ============================================
+# PROVIDER SECTION (AWS Configuration)
+# ============================================
+
+provider:
+  name: aws
+  runtime: python3.11
+  # ^ FIXED: Changed from nodejs20.x to python3.11
+  
+  region: ${opt:region, 'us-east-1'}
+  # ^ Changed to us-east-1 (more common, has all services)
+  
+  stage: ${opt:stage, 'dev'}
+  
+  memorySize: 512
+  timeout: 30
+  
+  environment:
+    STAGE: ${self:provider.stage}
+    REGION: ${self:provider.region}
+    AGENT_STATE_TABLE: ${self:custom.agentStateTable}
+    EMBEDDINGS_TABLE: ${self:custom.embeddingsTable}
+  
+  iam:
+    role:
+      statements:
+        # CloudWatch Logs
+        - Effect: Allow
+          Action:
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+          Resource: '*'
+        
+        # DynamoDB Access
+        - Effect: Allow
+          Action:
+            - dynamodb:PutItem
+            - dynamodb:GetItem
+            - dynamodb:UpdateItem
+            - dynamodb:Query
+            - dynamodb:Scan
+          Resource:
+            - 'arn:aws:dynamodb:${self:provider.region}:*:table/${self:custom.agentStateTable}'
+            - 'arn:aws:dynamodb:${self:provider.region}:*:table/${self:custom.embeddingsTable}'
+        
+        # Lambda Invoke (for orchestrator to call other agents)
+        - Effect: Allow
+          Action:
+            - lambda:InvokeFunction
+          Resource:
+            - 'arn:aws:lambda:${self:provider.region}:*:function:${self:service}-${self:provider.stage}-*'
+
+# ============================================
+# CUSTOM SECTION
+# ============================================
+
+custom:
+  agentStateTable: ClinisightAgentState-${self:provider.stage}
+  embeddingsTable: ClinisightEmbeddings-${self:provider.stage}
+  
+  pythonRequirements:
+    dockerizePip: false
+    # ^ FIXED: Disabled Docker (you don't have it on Windows)
+    slim: true
+    strip: false
+    layer: false
+    # ^ FIXED: Disabled layers for simpler deployment
+
+# ============================================
+# FUNCTIONS
+# ============================================
+
+functions:
+  
+  orchestrator:
+    handler: orchestrator/handler.lambda_handler
+    description: Routes events to appropriate agent Lambdas
+    memorySize: 1024
+    timeout: 60
+    
+    events:
+      - http:
+          path: /webhook
+          method: post
+          cors: true
+      
+      - http:
+          path: /rovo/insights
+          method: get
+          cors: true
+  
+  tasksmith:
+    handler: agents/tasksmith.lambda_handler
+    description: Decomposes epics into subtasks
+    memorySize: 1024
+    timeout: 60
+
+# ============================================
+# RESOURCES (DynamoDB Tables)
+# ============================================
+
+resources:
+  Resources:
+    
+    AgentStateTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:custom.agentStateTable}
+        BillingMode: PAY_PER_REQUEST
+        
+        AttributeDefinitions:
+          - AttributeName: tenantId
+            AttributeType: S
+          - AttributeName: agentName
+            AttributeType: S
+        
+        KeySchema:
+          - AttributeName: tenantId
+            KeyType: HASH
+          - AttributeName: agentName
+            KeyType: RANGE
+        
+        PointInTimeRecoverySpecification:
+          PointInTimeRecoveryEnabled: true
+        
+        Tags:
+          - Key: Project
+            Value: Clinisight
+          - Key: Environment
+            Value: ${self:provider.stage}
+    
+    EmbeddingsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:custom.embeddingsTable}
+        BillingMode: PAY_PER_REQUEST
+        
+        AttributeDefinitions:
+          - AttributeName: tenantId
+            AttributeType: S
+          - AttributeName: documentId
+            AttributeType: S
+        
+        KeySchema:
+          - AttributeName: tenantId
+            KeyType: HASH
+          - AttributeName: documentId
+            KeyType: RANGE
+        
+        PointInTimeRecoverySpecification:
+          PointInTimeRecoveryEnabled: true
+        
+        Tags:
+          - Key: Project
+            Value: Clinisight
+          - Key: Environment
+            Value: ${self:provider.stage}
+
+  Outputs:
+    ApiGatewayBaseUrl:
+      Description: API Gateway endpoint URL
+      Value:
+        Fn::Join:
+          - ''
+          - - 'https://'
+            - Ref: ApiGatewayRestApi
+            - '.execute-api.'
+            - ${self:provider.region}
+            - '.amazonaws.com/'
+            - ${self:provider.stage}
+    
+    AgentStateTableName:
+      Description: DynamoDB table for agent state
+      Value:
+        Ref: AgentStateTable
+    
+    EmbeddingsTableName:
+      Description: DynamoDB table for embeddings
+      Value:
+        Ref: EmbeddingsTable
+
+# ============================================
+# PLUGINS
+# ============================================
+
+plugins:
+  - serverless-python-requirements
+
+# ============================================
+# PACKAGE SETTINGS
+# ============================================
+
+package:
+  individually: true
+  exclude:
+    - node_modules/**
+    - venv/**
+    - .git/**
+    - __pycache__/**
+    - '*.pyc'
+    - tests/**
+    - .env
+    - .venv/**
+    - '*.md'

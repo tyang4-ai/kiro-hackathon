@@ -1,0 +1,19 @@
+modules:
+  jira:issuePanel:
+    - key: clinisight-issue-panel
+      title: Clinisight.AI
+      icon: https://developer.atlassian.com/platform/forge/images/icons/issue-panel-icon.svg
+      function: resolver
+
+function:
+  - key: resolver
+    handler: index.handler
+
+permissions:
+  scopes:
+    - read:jira-work
+
+app:
+  runtime:
+    name: nodejs20.x
+  id: ari:cloud:ecosystem::app/e13dba23-55f9-4278-b971-3c3969ec4091

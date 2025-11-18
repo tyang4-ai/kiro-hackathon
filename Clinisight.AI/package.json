@@ -1,0 +1,16 @@
+{
+  "name": "clinisight-ai-forge",
+  "version": "1.0.0",
+  "description": "Healthcare intelligence platform for Atlassian",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "echo \"No tests yet\""
+  },
+  "dependencies": {
+    "@forge/api": "^3.0.0",
+    "@forge/resolver": "^1.5.0",
+    "@forge/ui": "^1.0.0"
+  },
+  "author": "Clinisight.AI Team",
+  "license": "MIT"
+}

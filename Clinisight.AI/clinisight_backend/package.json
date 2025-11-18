@@ -1,0 +1,33 @@
+{
+  "name": "clinisight-backend",
+  "version": "1.0.0",
+  "description": "Backend for Clinisight.AI - Healthcare project intelligence platform",
+  "main": "index.js",
+  "scripts": {
+    "deploy": "serverless deploy",
+    "deploy:dev": "serverless deploy --stage dev",
+    "deploy:prod": "serverless deploy --stage prod",
+    "remove": "serverless remove",
+    "logs:orchestrator": "serverless logs --function orchestrator --tail",
+    "logs:tasksmith": "serverless logs --function tasksmith --tail",
+    "invoke": "serverless invoke --function orchestrator",
+    "test": "pytest tests/",
+    "setup": "node scripts/setup.js"
+  },
+  "keywords": [
+    "healthcare",
+    "ai",
+    "atlassian",
+    "forge",
+    "serverless",
+    "aws"
+  ],
+  "author": "Your Team",
+  "license": "MIT",
+  "devDependencies": {
+    "serverless": "^3.38.0",
+    "serverless-offline": "^13.3.0",
+    "serverless-python-requirements": "^6.1.0"
+  },
+  "dependencies": {}
+}
