@@ -28,6 +28,7 @@ provider:
     REGION: ${self:provider.region}
     AGENT_STATE_TABLE: ${self:custom.agentStateTable}
     EMBEDDINGS_TABLE: ${self:custom.embeddingsTable}
+    SENTRY_DSN: https://1845f826957502c8891779110a97b3af@o4510350819786752.ingest.us.sentry.io/4510395040071680
   
   iam:
     role:
