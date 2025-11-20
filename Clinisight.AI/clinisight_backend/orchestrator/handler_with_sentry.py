@@ -76,10 +76,27 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     # STEP 2: Extract Event Data
     # ========================================
     if event_source == 'api_gateway':
-        body = json.loads(event.get('body', '{}'))
-        event_type = body.get('eventType', 'UNKNOWN')
-        tenant_id = body.get('tenantId', 'unknown')
-        event_data = body.get('data', {})
+        http_method = event.get('httpMethod', 'POST')
+        path = event.get('path', '')
+
+        # Handle GET requests (e.g., /rovo/insights)
+        if http_method == 'GET':
+            query_params = event.get('queryStringParameters') or {}
+            tenant_id = query_params.get('tenantId', 'demo-tenant')
+
+            # Determine event type from path
+            if '/rovo/insights' in path:
+                event_type = 'ROVO_INSIGHTS'
+            else:
+                event_type = 'UNKNOWN'
+
+            event_data = {}
+        else:
+            # Handle POST requests
+            body = json.loads(event.get('body') or '{}')
+            event_type = body.get('eventType', 'UNKNOWN')
+            tenant_id = body.get('tenantId', 'unknown')
+            event_data = body.get('data', {})
 
     elif event_source == 'eventbridge':
         event_type = event.get('eventType', 'UNKNOWN')

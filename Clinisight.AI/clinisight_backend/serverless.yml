@@ -133,10 +133,9 @@ resources:
           - AttributeName: agentName
             KeyType: RANGE
 
-        # HIPAA Compliance: Encryption at rest
+        # HIPAA Compliance: Encryption at rest (AWS-managed keys)
         SSESpecification:
           SSEEnabled: true
-          SSEType: KMS
 
         # HIPAA Compliance: Point-in-time recovery for data protection
         PointInTimeRecoverySpecification:
@@ -154,7 +153,7 @@ resources:
             Value: ${self:provider.stage}
           - Key: Compliance
             Value: HIPAA
-    
+
     EmbeddingsTable:
       Type: AWS::DynamoDB::Table
       Properties:
@@ -173,10 +172,9 @@ resources:
           - AttributeName: documentId
             KeyType: RANGE
 
-        # HIPAA Compliance: Encryption at rest
+        # HIPAA Compliance: Encryption at rest (AWS-managed keys)
         SSESpecification:
           SSEEnabled: true
-          SSEType: KMS
 
         # HIPAA Compliance: Point-in-time recovery
         PointInTimeRecoverySpecification:
@@ -214,10 +212,9 @@ resources:
           - AttributeName: timestamp
             KeyType: RANGE
 
-        # HIPAA Compliance: Encryption at rest
+        # HIPAA Compliance: Encryption at rest (AWS-managed keys)
         SSESpecification:
           SSEEnabled: true
-          SSEType: KMS
 
         # HIPAA Compliance: Point-in-time recovery
         PointInTimeRecoverySpecification:
