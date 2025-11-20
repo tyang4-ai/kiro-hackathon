@@ -40,19 +40,19 @@
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    ATLASSIAN FORGE APP                       │
-│              (Jira/Confluence Issue Panels)                  │
+│                    ATLASSIAN FORGE APP                      │
+│              (Jira/Confluence Issue Panels)                 │
 └───────────────────────┬─────────────────────────────────────┘
                         │ Webhook Events
                         ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                    API GATEWAY (REST)                        │
+│                    API GATEWAY (REST)                       │
 └───────────────────────┬─────────────────────────────────────┘
                         │
                         ▼
 ┌─────────────────────────────────────────────────────────────┐
-│               ORCHESTRATOR LAMBDA                            │
-│         (Event Router & Traffic Controller)                  │
+│               ORCHESTRATOR LAMBDA                           │
+│         (Event Router & Traffic Controller)                 │
 └─────┬──────────┬──────────┬──────────┬────────────┬─────────┘
       │          │          │          │            │
       ▼          ▼          ▼          ▼            ▼

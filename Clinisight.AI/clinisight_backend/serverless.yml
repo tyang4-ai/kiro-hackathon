@@ -83,8 +83,8 @@ custom:
 functions:
   
   orchestrator:
-    handler: orchestrator/handler.lambda_handler
-    description: Routes events to appropriate agent Lambdas
+    handler: orchestrator/handler_with_sentry.lambda_handler
+    description: Routes events to appropriate agent Lambdas (with Sentry)
     memorySize: 1024
     timeout: 60
     

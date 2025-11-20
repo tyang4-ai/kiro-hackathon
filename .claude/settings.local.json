@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir:*)",
+      "Bash(chmod:*)",
+      "Bash(python -m json.tool:*)",
+      "SlashCommand(/dev-docs-update Completed comprehensive strategic planning for Clinisight backend architecture and agent system. Created 4-document suite: strategic plan (10 phases), context documentation, task checklist (200+ tasks), and README. Ready for Phase 1 implementation (Sentry integration) or hackathon MVP path.)",
+      "SlashCommand(/dev-docs-update:*)",
+      "Bash(git init:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git config:*)",
+      "Bash(git remote add:*)",
+      "Bash(git push:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
