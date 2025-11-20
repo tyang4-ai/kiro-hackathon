@@ -28,6 +28,7 @@ provider:
     REGION: ${self:provider.region}
     AGENT_STATE_TABLE: ${self:custom.agentStateTable}
     EMBEDDINGS_TABLE: ${self:custom.embeddingsTable}
+    AUDIT_LOG_TABLE: ${self:custom.auditLogTable}
     SENTRY_DSN: https://1845f826957502c8891779110a97b3af@o4510350819786752.ingest.us.sentry.io/4510395040071680
   
   iam:
@@ -52,6 +53,7 @@ provider:
           Resource:
             - 'arn:aws:dynamodb:${self:provider.region}:*:table/${self:custom.agentStateTable}'
             - 'arn:aws:dynamodb:${self:provider.region}:*:table/${self:custom.embeddingsTable}'
+            - 'arn:aws:dynamodb:${self:provider.region}:*:table/${self:custom.auditLogTable}'
         
         # Lambda Invoke (for orchestrator to call other agents)
         - Effect: Allow
@@ -67,6 +69,7 @@ provider:
 custom:
   agentStateTable: ClinisightAgentState-${self:provider.stage}
   embeddingsTable: ClinisightEmbeddings-${self:provider.stage}
+  auditLogTable: ClinisightAuditLog-${self:provider.stage}
   
   pythonRequirements:
     dockerizePip: false
@@ -117,54 +120,121 @@ resources:
       Properties:
         TableName: ${self:custom.agentStateTable}
         BillingMode: PAY_PER_REQUEST
-        
+
         AttributeDefinitions:
           - AttributeName: tenantId
             AttributeType: S
           - AttributeName: agentName
             AttributeType: S
-        
+
         KeySchema:
           - AttributeName: tenantId
             KeyType: HASH
           - AttributeName: agentName
             KeyType: RANGE
-        
+
+        # HIPAA Compliance: Encryption at rest
+        SSESpecification:
+          SSEEnabled: true
+          SSEType: KMS
+
+        # HIPAA Compliance: Point-in-time recovery for data protection
         PointInTimeRecoverySpecification:
           PointInTimeRecoveryEnabled: true
-        
+
+        # HIPAA Compliance: Data retention (7 years = 2556 days)
+        TimeToLiveSpecification:
+          AttributeName: expiresAt
+          Enabled: true
+
         Tags:
           - Key: Project
             Value: Clinisight
           - Key: Environment
             Value: ${self:provider.stage}
+          - Key: Compliance
+            Value: HIPAA
     
     EmbeddingsTable:
       Type: AWS::DynamoDB::Table
       Properties:
         TableName: ${self:custom.embeddingsTable}
         BillingMode: PAY_PER_REQUEST
-        
+
         AttributeDefinitions:
           - AttributeName: tenantId
             AttributeType: S
           - AttributeName: documentId
             AttributeType: S
-        
+
         KeySchema:
           - AttributeName: tenantId
             KeyType: HASH
           - AttributeName: documentId
             KeyType: RANGE
-        
+
+        # HIPAA Compliance: Encryption at rest
+        SSESpecification:
+          SSEEnabled: true
+          SSEType: KMS
+
+        # HIPAA Compliance: Point-in-time recovery
         PointInTimeRecoverySpecification:
           PointInTimeRecoveryEnabled: true
-        
+
+        # HIPAA Compliance: Data retention
+        TimeToLiveSpecification:
+          AttributeName: expiresAt
+          Enabled: true
+
         Tags:
           - Key: Project
             Value: Clinisight
           - Key: Environment
             Value: ${self:provider.stage}
+          - Key: Compliance
+            Value: HIPAA
+
+    # HIPAA Compliance: Audit Log Table
+    AuditLogTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:custom.auditLogTable}
+        BillingMode: PAY_PER_REQUEST
+
+        AttributeDefinitions:
+          - AttributeName: tenantId
+            AttributeType: S
+          - AttributeName: timestamp
+            AttributeType: S
+
+        KeySchema:
+          - AttributeName: tenantId
+            KeyType: HASH
+          - AttributeName: timestamp
+            KeyType: RANGE
+
+        # HIPAA Compliance: Encryption at rest
+        SSESpecification:
+          SSEEnabled: true
+          SSEType: KMS
+
+        # HIPAA Compliance: Point-in-time recovery
+        PointInTimeRecoverySpecification:
+          PointInTimeRecoveryEnabled: true
+
+        # Audit logs retained for 7 years (HIPAA requirement)
+        TimeToLiveSpecification:
+          AttributeName: expiresAt
+          Enabled: true
+
+        Tags:
+          - Key: Project
+            Value: Clinisight
+          - Key: Environment
+            Value: ${self:provider.stage}
+          - Key: Compliance
+            Value: HIPAA-AuditLog
 
   Outputs:
     ApiGatewayBaseUrl:
