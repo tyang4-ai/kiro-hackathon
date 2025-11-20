@@ -135,9 +135,11 @@
    - ✅ Audit log table created (ClinisightAuditLog)
    - ✅ Point-in-time recovery enabled
    - ✅ TTL policies configured (7 years for HIPAA)
-   - 🔄 Audit logging functions - pending implementation
-   - 🔄 Enhanced PII detection - pending
-   - Basic PII detection, but not HIPAA-certified
+   - ✅ Audit logging functions implemented (log_audit_event, query_audit_logs, *_with_audit variants)
+   - ✅ Enhanced PII detection with 12 healthcare patterns (SSN, MRN, DOB, etc.)
+   - ✅ PIIScanResult dataclass with graceful error handling
+   - ✅ mask_pii_in_text() function for safe logging
+   - 🔄 CareTrack compliance automation - pending
    - Missing BAA (Business Associate Agreement) considerations
 
 6. **Testing & Quality**
@@ -269,11 +271,18 @@ A production-grade, HIPAA-compliant healthcare intelligence platform where:
 **Progress Summary:**
 - ✅ [P2.1] DynamoDB encryption at rest enabled (KMS)
 - ✅ [P2.2] Audit log table created (ClinisightAuditLog)
-- ✅ TTL policies configured for data retention
+- ✅ [P2.2] Audit logging functions implemented in shared/database.py:
+  - `log_audit_event()` - Core audit logging with WHO/WHAT/WHEN/WHERE/WHY
+  - `query_audit_logs()` - Query by tenant and time range
+  - `save_state_with_audit()`, `get_state_with_audit()`, `delete_state_with_audit()`
+- ✅ TTL policies configured for data retention (7 years HIPAA)
 - ✅ Point-in-time recovery enabled
 - ✅ IAM permissions added for audit table access
-- 🔄 [P2.2] Audit logging functions - next step
-- ⏳ [P2.3] Enhanced PII detection - pending
+- ✅ [P2.3] Enhanced PII detection implemented in shared/security.py:
+  - 12 healthcare PII patterns (SSN, MRN, DOB, phone, email, insurance ID, NPI, DEA, credit card, ICD-10, CPT, NDC)
+  - `scan_for_healthcare_pii()` - Comprehensive scanner with risk levels
+  - `PIIScanResult` dataclass with graceful handling of missing data
+  - `mask_pii_in_text()` - Mask PII in text for safe logging
 - ⏳ [P2.5] CareTrack compliance automation - pending
 
 #### Tasks
@@ -974,6 +983,7 @@ This plan transforms Clinisight from a basic proof-of-concept into a production-
 
 | Date | Change | Details |
 |------|--------|---------|
-| 2025-11-19 | Phase 1 Complete | Sentry integration deployed and verified working |
+| 2025-11-19 | Phase 2 Core Complete | Audit logging functions, enhanced PII detection (12 patterns), graceful error handling |
 | 2025-11-19 | Phase 2 Started | DynamoDB encryption, audit table, TTL policies configured |
+| 2025-11-19 | Phase 1 Complete | Sentry integration deployed and verified working |
 | 2025-11-11 | Initial Plan | Strategic plan created with 10 phases |
